@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M0bywatel — Autoryzacja</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-dark: #09020e;
+            --bg-mid: #1c0a27;
+            --text-light: #eeeeee;
+            --text-subtle: #777777;
+            --glass-fill: rgba(255, 255, 255, 0.05);
+            --border-clear: rgba(150, 0, 255, 0.3);
+            --accent-purple: #9c27b0;
+            --accent-glow: rgba(150, 0, 255, 0.6);
+            --shadow-button: rgba(150, 0, 255, 0.4);
+            --error-red: #ff3333;
+            --success-green: #33ff33;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: radial-gradient(circle at top left, var(--bg-mid) 5%, transparent 40%),
+                             radial-gradient(circle at bottom right, rgba(150, 0, 255, 0.1) 0%, transparent 45%);
+        }
+
+        .container {
+            background: var(--glass-fill);
+            backdrop-filter: blur(20px) brightness(1.1);
+            -webkit-backdrop-filter: blur(20px) brightness(1.1);
+            padding: 40px 30px;
+            border-radius: 28px;
+            border: 1px solid var(--border-clear);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9), 0 0 20px var(--accent-glow) inset;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px var(--accent-purple);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-subtle);
+            margin-bottom: 30px;
+            letter-spacing: 0.5px;
+        }
+
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem;
+            border: 2px solid rgba(150, 0, 255, 0.2);
+            color: var(--text-subtle);
+            transition: all 0.4s ease;
+        }
+
+        .step.active {
+            border-color: var(--accent-purple);
+            color: var(--text-light);
+            background: rgba(150, 0, 255, 0.2);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .step.done {
+            border-color: var(--success-green);
+            color: var(--success-green);
+            background: rgba(51, 255, 51, 0.1);
+        }
+
+        .step-line {
+            width: 40px; height: 2px;
+            background: rgba(150, 0, 255, 0.2);
+            align-self: center;
+            transition: background 0.4s;
+        }
+
+        .step-line.done { background: var(--success-green); }
+
+        .panel { display: none; animation: fadeIn 0.4s ease; }
+        .panel.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-title {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 12px;
+            text-shadow: 0 0 8px rgba(150, 0, 255, 0.3);
+        }
+
+        .panel-desc {
+            font-size: 0.82rem; color: var(--text-subtle);
+            line-height: 1.5; margin-bottom: 24px;
+        }
+
+        .btn {
+            width: 100%; padding: 16px 20px; border: none; border-radius: 12px;
+            cursor: pointer; font-size: 1rem; font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.25s ease;
+            background-color: var(--accent-purple);
+            color: var(--text-light);
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px var(--shadow-button);
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px); filter: brightness(1.15);
+            box-shadow: 0 6px 25px var(--shadow-button);
+        }
+
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .code-input {
+            width: 100%; padding: 18px 14px;
+            border: 2px solid var(--border-clear); border-radius: 12px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: var(--text-light);
+            font-size: 1.6rem; font-weight: 700;
+            font-family: 'Inter', monospace;
+            text-align: center; letter-spacing: 8px;
+            text-transform: uppercase;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            margin-bottom: 20px;
+            -webkit-appearance: none;
+        }
+
+        .code-input:focus {
+            border-color: var(--accent-purple); outline: none;
+            box-shadow: 0 0 0 4px var(--accent-glow);
+            background-color: var(--bg-mid);
+        }
+
+        .code-input::placeholder {
+            color: var(--text-subtle); opacity: 0.5;
+            letter-spacing: 6px; font-size: 1.2rem;
+        }
+
+        .status {
+            min-height: 20px; font-size: 0.82rem; font-weight: 600;
+            margin-top: 16px; transition: all 0.3s;
+            line-height: 1.4;
+        }
+
+        .status.error { color: var(--error-red); }
+        .status.success { color: var(--success-green); }
+        .status.info { color: var(--text-subtle); }
+
+        .spinner {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: var(--text-light);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle; margin-right: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .lock-icon {
+            font-size: 3rem; margin-bottom: 16px;
+            filter: drop-shadow(0 0 10px var(--accent-glow));
+        }
+
+        .footer {
+            margin-top: 24px; padding-top: 20px;
+            border-top: 1px solid rgba(150, 0, 255, 0.15);
+        }
+
+        .discord-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background-color: #5865F2; color: white;
+            padding: 10px 18px; border-radius: 8px;
+            text-decoration: none; font-weight: 600; font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .discord-btn:hover { background-color: #4752C4; transform: translateY(-1px); }
+
+        .btn-secondary {
+            background: transparent; border: 1px solid var(--border-clear);
+            box-shadow: none; font-size: 0.8rem; padding: 10px;
+            margin-top: 16px;
+        }
+
+        /* Panel Admina */
+        .admin-box {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px dashed var(--border-clear);
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.4);
+            text-align: left;
+        }
+        .admin-box h3 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: var(--accent-purple);
+        }
+        .admin-input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-clear);
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="logo">M0bywatel</div>
+    <div class="subtitle">System autoryzacji jednorazowym kodem</div>
+
+    <div class="steps" id="stepperContainer">
+        <div class="step active" id="step1">1</div>
+        <div class="step-line" id="stepLine"></div>
+        <div class="step" id="step2">2</div>
+    </div>
+
+    <!-- PANEL 1: Generuj kod -->
+    <div class="panel active" id="panelRequest">
+        <div class="lock-icon">🔐</div>
+        <div class="panel-title">Poproś o kod dostępu</div>
+        <div class="panel-desc">
+            Kliknij poniżej, aby wygenerować jednorazowy kod licencji.<br>
+            Administrator prześle Ci kod — wpisz go w następnym kroku.
+        </div>
+        <button class="btn" id="btnRequest" onclick="requestCode()">
+            WYGENERUJ KOD
+        </button>
+        <div class="status" id="statusRequest"></div>
+    </div>
+
+    <!-- PANEL 2: Wpisz kod -->
+    <div class="panel" id="panelEnter">
+        <div class="lock-icon">🔑</div>
+        <div class="panel-title">Wpisz kod dostępu</div>
+        <div class="panel-desc">
+            Wpisz kod, który otrzymałeś od administratora.
+        </div>
+        <input type="text" class="code-input" id="codeInput" placeholder="XXXXXX" maxlength="6" autocomplete="off" spellcheck="false">
+        <button class="btn" id="btnLogin" onclick="loginWithCode()">
+            ZALOGUJ SIĘ
+        </button>
+        <div class="status" id="statusLogin"></div>
+        <button class="btn btn-secondary" onclick="goToStep1()">← Wygeneruj nowy kod</button>
+    </div>
+
+    <!-- PANEL ADMINA -->
+    <div class="panel" id="panelAdmin">
+        <div class="admin-box">
+            <h3>Panel Generatora Kodów Admina</h3>
+            <label style="font-size: 0.8rem; color: var(--text-subtle);">IP klienta:</label>
+            <input type="text" class="admin-input" id="adminIp" placeholder="np. 83.21.43.12">
+            <label style="font-size: 0.8rem; color: var(--text-subtle);">ID sesji klienta:</label>
+            <input type="text" class="admin-input" id="adminSession" placeholder="np. 5819">
+            <button class="btn" onclick="adminGenerateCode()">GENERUJ KOD</button>
+            <div id="adminResult" style="margin-top: 15px; font-weight: bold; text-align: center; font-size: 1.3rem; color: var(--success-green); word-break: break-all;"></div>
+        </div>
+        <button class="btn btn-secondary" onclick="window.location.search = ''">Powrót do logowania</button>
+    </div>
+
+    <div class="footer">
+        <a href="https://discord.gg/QUpb2dsDe" class="discord-btn" target="_blank">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRKIP7xyleSSc5bg5WGAI--fM6JlBI_Dwr9CEaeIaSfsA&s" alt="Discord" style="width:20px;height:20px;">
+            Dołącz na Discorda
+        </a>
+    </div>
+</div>
+
+<script>
+    const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1536862222960173116/XmsopGN5NUWuIGCm3c-o_V3Jt6g8_7ZXQpTlLtSYvtne72url4zS7HBEnWWTYvldq_I7';
+    const SECRET_SALT = 'mobywatel_secret_key_2026_salt'; 
+
+    // Sprawdź czy już zalogowany
+    (function() {
+        const auth = localStorage.getItem('m0b_auth');
+        if (auth) {
+            try {
+                const data = JSON.parse(auth);
+                if (data.ts && (Date.now() - data.ts) < 86400000) {
+                    window.location.replace('gen.html');
+                    return;
+                } else {
+                    localStorage.removeItem('m0b_auth');
+                }
+            } catch(e) {
+                localStorage.removeItem('m0b_auth');
+            }
+        }
+    })();
+
+    // Detekcja trybu admina
+    const urlParams = new URLSearchParams(window.location.search);
+    const isAdmin = urlParams.get('admin') === '1';
+
+    if (isAdmin) {
+        document.getElementById('panelRequest').classList.remove('active');
+        document.getElementById('panelEnter').classList.remove('active');
+        document.getElementById('panelAdmin').classList.add('active');
+        document.getElementById('stepperContainer').style.display = 'none';
+        
+        if (urlParams.get('ip')) document.getElementById('adminIp').value = urlParams.get('ip');
+        if (urlParams.get('session')) document.getElementById('adminSession').value = urlParams.get('session');
+    }
+
+    const panelRequest = document.getElementById('panelRequest');
+    const panelEnter = document.getElementById('panelEnter');
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+    const stepLine = document.getElementById('stepLine');
+    const statusRequest = document.getElementById('statusRequest');
+    const statusLogin = document.getElementById('statusLogin');
+    const btnRequest = document.getElementById('btnRequest');
+    const btnLogin = document.getElementById('btnLogin');
+    const codeInput = document.getElementById('codeInput');
+
+    codeInput.addEventListener('input', function() {
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    });
+    codeInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') loginWithCode();
+    });
+
+    // Pętla pobierająca IP klienta z wieloma fallbackami (odporna na AdBlock)
+    async function getUserIP() {
+        const apis = [
+            'https://api.ipify.org?format=json',
+            'https://ipapi.co/json/',
+            'https://api.db-ip.com/v2/free/self',
+            'https://wtfismyip.com/json',
+            'https://httpbin.org/ip'
+        ];
+        
+        for (const url of apis) {
+            try {
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), 3000);
+                const res = await fetch(url, { signal: controller.signal });
+                clearTimeout(id);
+                const data = await res.json();
+                const ip = data.ip || data.origin;
+                if (ip) return ip.trim();
+            } catch(e) {}
+        }
+        
+        // Ostatnia próba plain text
+        try {
+            const res = await fetch('https://ipv4.icanhazip.com');
+            const text = await res.text();
+            if (text) return text.trim();
+        } catch(e) {}
+        
+        throw new Error('Nie udało się pobrać adresu IP. Wyłącz VPN/AdBlock/Proxy i spróbuj ponownie.');
+    }
+
+    async function generateSecureCode(ip, sessionId) {
+        const text = `${ip.trim()}_${sessionId.trim()}_${SECRET_SALT}`;
+        const encoder = new TextEncoder();
+        const data = encoder.encode(text);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex.substring(0, 6).toUpperCase();
+    }
+
+    async function adminGenerateCode() {
+        const ip = document.getElementById('adminIp').value.trim();
+        const sess = document.getElementById('adminSession').value.trim();
+        const resultDiv = document.getElementById('adminResult');
+        if (!ip || !sess) {
+            resultDiv.style.color = 'var(--error-red)';
+            resultDiv.textContent = 'Wpisz IP oraz ID Sesji!';
+            return;
+        }
+        const code = await generateSecureCode(ip, sess);
+        resultDiv.style.color = 'var(--success-green)';
+        resultDiv.textContent = `KOD DLA KLIENTA: ${code}`;
+    }
+
+    function goToStep2() {
+        panelRequest.classList.remove('active');
+        panelEnter.classList.add('active');
+        step1.classList.remove('active');
+        step1.classList.add('done');
+        step1.textContent = '✓';
+        stepLine.classList.add('done');
+        step2.classList.add('active');
+        setTimeout(() => codeInput.focus(), 300);
+    }
+
+    function goToStep1() {
+        panelEnter.classList.remove('active');
+        panelRequest.classList.add('active');
+        step2.classList.remove('active');
+        stepLine.classList.remove('done');
+        step1.classList.remove('done');
+        step1.classList.add('active');
+        step1.textContent = '1';
+        statusRequest.textContent = '';
+        statusRequest.className = 'status';
+        btnRequest.disabled = false;
+        btnRequest.innerHTML = 'WYGENERUJ KOD';
+        btnRequest.onclick = requestCode;
+    }
+
+    async function requestCode() {
+        btnRequest.disabled = true;
+        btnRequest.innerHTML = '<span class="spinner"></span> Pobieranie IP...';
+        statusRequest.textContent = '';
+        statusRequest.className = 'status';
+
+        try {
+            const ip = await getUserIP();
+            btnRequest.innerHTML = '<span class="spinner"></span> Wysyłanie prośby...';
+
+            const sessionId = Math.floor(1000 + Math.random() * 9000).toString();
+            sessionStorage.setItem('m0b_req_ip', ip);
+            sessionStorage.setItem('m0b_req_session', sessionId);
+
+            const currentUrl = window.location.origin + window.location.pathname;
+            const adminLink = `${currentUrl}?admin=1&ip=${ip}&session=${sessionId}`;
+
+            const now = new Date().toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' });
+            const payload = {
+                embeds: [{
+                    title: '🔑 Nowa prośba o kod licencyjny',
+                    color: 0x9c27b0,
+                    description: 'Klient prosi o kod dostępu do aplikacji.',
+                    fields: [
+                        { name: '🌐 Adres IP', value: `\`${ip}\``, inline: true },
+                        { name: '🆔 ID sesji', value: `\`${sessionId}\``, inline: true },
+                        { name: '🕐 Czas', value: now, inline: false },
+                        { name: '⚡ Szybkie generowanie (kliknij)', value: `[Generuj kod w panelu admina](${adminLink})`, inline: false }
+                    ],
+                    footer: { text: 'M0bywatel License System' },
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            const res = await fetch(DISCORD_WEBHOOK, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                statusRequest.textContent = '✅ Prośba wysłana! Podaj administratorowi swoje IP lub poczekaj na kod. Gdy go otrzymasz, kliknij DALEJ.';
+                statusRequest.className = 'status success';
+                btnRequest.innerHTML = 'DALEJ →';
+                btnRequest.disabled = false;
+                btnRequest.onclick = goToStep2;
+            } else {
+                statusRequest.textContent = '❌ Błąd wysyłania na Discord. Sprawdź konfigurację webhooka.';
+                statusRequest.className = 'status error';
+                btnRequest.innerHTML = 'SPRÓBUJ PONOWNIE';
+                btnRequest.disabled = false;
+            }
+
+        } catch (e) {
+            statusRequest.textContent = `❌ Błąd: ${e.message}`;
+            statusRequest.className = 'status error';
+            btnRequest.innerHTML = 'SPRÓBUJ PONOWNIE';
+            btnRequest.disabled = false;
+        }
+    }
+
+    async function loginWithCode() {
+        const inputCode = codeInput.value.trim().toUpperCase();
+        if (!inputCode || inputCode.length < 5) {
+            statusLogin.textContent = '❌ Wpisz poprawny kod.';
+            statusLogin.className = 'status error';
+            return;
+        }
+
+        btnLogin.disabled = true;
+        btnLogin.innerHTML = '<span class="spinner"></span> Weryfikacja...';
+        statusLogin.textContent = '';
+
+        try {
+            const storedIp = sessionStorage.getItem('m0b_req_ip');
+            const storedSession = sessionStorage.getItem('m0b_req_session');
+
+            if (!storedIp || !storedSession) {
+                statusLogin.textContent = '❌ Brak aktywnej sesji żądania. Wróć do kroku 1 i wygeneruj kod.';
+                statusLogin.className = 'status error';
+                btnLogin.innerHTML = 'ZALOGUJ SIĘ';
+                btnLogin.disabled = false;
+                return;
+            }
+
+            const currentIp = await getUserIP();
+            if (currentIp !== storedIp) {
+                statusLogin.textContent = '❌ Twój adres IP uległ zmianie! Wygeneruj kod ponownie.';
+                statusLogin.className = 'status error';
+                btnLogin.innerHTML = 'ZALOGUJ SIĘ';
+                btnLogin.disabled = false;
+                return;
+            }
+
+            const expectedCode = await generateSecureCode(currentIp, storedSession);
+
+            if (inputCode !== expectedCode) {
+                statusLogin.textContent = '❌ Nieprawidłowy kod dostępu.';
+                statusLogin.className = 'status error';
+                btnLogin.innerHTML = 'ZALOGUJ SIĘ';
+                btnLogin.disabled = false;
+                return;
+            }
+
+            localStorage.setItem('m0b_auth', JSON.stringify({
+                ts: Date.now(),
+                ip: currentIp
+            }));
+
+            statusLogin.textContent = '✅ Autoryzacja pomyślna! Przekierowywanie...';
+            statusLogin.className = 'status success';
+            setTimeout(() => {
+                window.location.href = 'gen.html';
+            }, 800);
+
+        } catch (e) {
+            statusLogin.textContent = `❌ Błąd weryfikacji: ${e.message}`;
+            statusLogin.className = 'status error';
+            btnLogin.innerHTML = 'ZALOGUJ SIĘ';
+            btnLogin.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>

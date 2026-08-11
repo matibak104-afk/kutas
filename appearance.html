@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>mObywatel</title>
+  <link rel="stylesheet" href="assets/moreid.css">
+  <link rel="stylesheet" href="assets/main.css">
+  <link rel="icon" type="image/x-icon" href="https://i.imgur.com/U7TRg0V.png">
+  <link rel="apple-touch-icon" href="https://i.imgur.com/U7TRg0V.png">
+  <link rel="shortcut icon" href="https://i.imgur.com/U7TRg0V.png">
+  <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
+  <style>
+    .option-row { display: flex; align-items: center; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+    .option-row:last-child { border-bottom: none; }
+    .option-text { color: #fff; font-size: 16px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #fff; display: inline-block; }
+    .dot.active { background-color: #4ba4fe; border-color: #4ba4fe; }
+  </style>
+</head>
+<body>
+  <div class="top_grid">
+    <div class="action_grid">
+      <img src="https://i.imgur.com/aXIO2NG.png" class="back_img">
+      <p onclick="sendTo('more')" class="back_text">Wróć</p>
+    </div>
+    <p class="title_text">Wygląd aplikacji</p>
+    <img src="https://i.imgur.com/VHNv1TC.png" class="help_img">
+  </div>
+
+  <div class="card custom-card">
+    <div class="option-row" onclick="selectTheme(0)">
+      <span class="option-text">Jasny motyw</span>
+      <span class="dot" id="dot0"></span>
+    </div>
+    <div class="option-row" onclick="selectTheme(1)">
+      <span class="option-text">Ciemny motyw</span>
+      <span class="dot active" id="dot1"></span>
+    </div>
+    <div class="option-row" onclick="selectTheme(2)">
+      <span class="option-text">Zgodny z systemem</span>
+      <span class="dot" id="dot2"></span>
+    </div>
+  </div>
+
+  <script>
+    var currentTheme = localStorage.getItem('appTheme') || 'dark';
+    var themeIndex = currentTheme === 'light' ? 0 : (currentTheme === 'system' ? 2 : 1);
+    updateDots(themeIndex);
+
+    function selectTheme(index) {
+      var themes = ['light', 'dark', 'system'];
+      var chosen = themes[index];
+      localStorage.setItem('appTheme', chosen);
+      updateDots(index);
+      location.reload();
+    }
+
+    function updateDots(index) {
+      document.getElementById('dot0').classList.remove('active');
+      document.getElementById('dot1').classList.remove('active');
+      document.getElementById('dot2').classList.remove('active');
+      document.getElementById('dot' + index).classList.add('active');
+    }
+  </script>
+  <script src="assets/bar.js"></script>
+  <script src="assets/manifest.js"></script>
+</body>
+</html>
